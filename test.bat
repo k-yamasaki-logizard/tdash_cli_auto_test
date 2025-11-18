@@ -6,14 +6,14 @@ REM ¦b’èFsync‚ğ”z’u‚µ‚½ƒfƒBƒŒƒNƒgƒŠ‚ÍAC:\Users\kanri02\Desktop\T-DASH•‰‰×ƒeƒ
 REM •Ï”‚ğ”Xİ’è
 REM Às“ú•t
 set YYYY=%DATE:~0,4%
-set MM=%DATE:~5,2%
+set DATE_MM=%DATE:~5,2%
 set DD=%DATE:~8,2%
 
 REM Às
 set HH=%TIME:~0,2%
 set HH=%HH: =0%
-set mm=%TIME:~3,2%
-set ss=%TIME:~6,2%
+set TIME_MM=%TIME:~3,2%
+set SS=%TIME:~6,2%
 
 REM ƒpƒXŠÖ˜A
 set CURRENT_PATH=%~dp0
@@ -25,7 +25,7 @@ mkdir %LOG_PATH% /
 mkdir %OUTPUT_REPORT_DIR_PATH% /
 
 REM â‘ÎƒpƒX‚ÅƒƒOƒtƒ@ƒCƒ‹(Œ`®Ftdash_test_logs\yyyyMMdd_HHmmss.txt)
-set LOGFILE=%LOG_PATH%\%YYYY%%MM%%DD%_%HH%%mm%%ss%.txt
+set LOGFILE=%LOG_PATH%\%YYYY%%DATE_MM%%DD%_%HH%%TIME_MM%%SS%.txt
 
 REM T-DASHƒCƒ“ƒXƒg[ƒ‹ƒfƒBƒŒƒNƒgƒŠ‚ÖˆÚ“®(‚±‚±‚©‚ç‚ÌÀs‚Å‚È‚¢‚ÆAtest_run‚ª¸”s‚·‚é)
 cd %USERPROFILE%\AppData\Local\Programs\T-DASH
