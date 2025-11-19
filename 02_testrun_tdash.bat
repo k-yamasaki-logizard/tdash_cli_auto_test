@@ -21,17 +21,14 @@ set LOG_PATH=%CURRENT_PATH%\tdash_test_logs
 set OUTPUT_REPORT_DIR_PATH=%CURRENT_PATH%\output_report_dir
 
 REM 必要なディレクトリを作る
-mkdir %LOG_PATH% /
-mkdir %OUTPUT_REPORT_DIR_PATH% /
+mkdir %LOG_PATH% >nul 2>&1
+mkdir %OUTPUT_REPORT_DIR_PATH% >nul 2>&1
 
 REM 絶対パスでログファイル(形式：tdash_test_logs\yyyyMMdd_HHmmss.txt)
-set LOGFILE=%LOG_PATH%\%YYYY%%DATE_MM%%DD%_%HH%%TIME_MM%%SS%.txt
+set LOGFILE=%LOG_PATH%\%YYYY%%DATE_MM%%DD%_%HH%%TIME_MM%%SS%_test.txt
 
 REM T-DASHインストールディレクトリへ移動(ここからの実行でないと、test_runが失敗する)
 cd %USERPROFILE%\AppData\Local\Programs\T-DASH
-
-REM tdashが起動している場合、起動中のtdash.exeを強制終了
-taskkill /F /IM tdash.exe >> "%LOGFILE%" 2>&1
 
 REM テストラン実行
 tdash.exe testrun "全て" --sync "C:\Users\kanri02\Desktop\T-DASH負荷テスト\sync-20251110" --background --silent --output_report_dir_path "%OUTPUT_REPORT_DIR_PATH%" >> "%LOGFILE%" 2>&1
