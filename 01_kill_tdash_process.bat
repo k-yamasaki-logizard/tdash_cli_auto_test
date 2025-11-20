@@ -1,5 +1,5 @@
 @echo off
-REM å®Ÿè¡Œæ—¥æ™‚
+REM ŽÀs“úŽž
 set YYYY=%DATE:~0,4%
 set DATE_MM=%DATE:~5,2%
 set DD=%DATE:~8,2%
@@ -8,15 +8,21 @@ set HH=%HH: =0%
 set TIME_MM=%TIME:~3,2%
 set SS=%TIME:~6,2%
 
-REM ãƒ‘ã‚¹é–¢é€£
+REM ƒpƒXŠÖ˜A
 set CURRENT_PATH=%~dp0
 set LOG_DIR_PATH=%CURRENT_PATH%\tdash_test_logs\%YYYY%%DATE_MM%%DD%
 
-REM å¿…è¦ãªãƒ‡ã‚£ãƒ¬ã‚¯ãƒˆãƒªã‚’ä½œã‚‹
+REM •K—v‚ÈƒfƒBƒŒƒNƒgƒŠ‚ðì‚é
 mkdir %LOG_DIR_PATH% >nul 2>&1
 
-REM ãƒ­ã‚°ãƒ•ã‚¡ã‚¤ãƒ«ã‚’è¨­å®š
+REM ƒƒOƒtƒ@ƒCƒ‹‚ðÝ’è
 set LOGFILE=%LOG_DIR_PATH%\%HH%%TIME_MM%%SS%_kill_tdash_process.log
 
-REM tdashãŒèµ·å‹•ã—ã¦ã„ã‚‹å ´åˆã€èµ·å‹•ä¸­ã®tdash.exeã‚’å¼·åˆ¶çµ‚äº†
+REM tdash‚ª‹N“®‚µ‚Ä‚¢‚éê‡A‹N“®’†‚Ìtdash.exe‚ð‹­§I—¹
 taskkill /F /IM tdash.exe >> "%LOGFILE%" 2>&1
+
+REM tdash‚ª‹N“®‚µ‚Ä‚¢‚È‚¢ê‡A³íI—¹‚Æ‚Ý‚È‚·
+if %ERRORLEVEL% EQU 128 (
+    echo ‹N“®’†‚Ìtdash.exe‚ªŒ©‚Â‚©‚ç‚È‚©‚Á‚½‚½‚ßA³íI—¹‚µ‚Ü‚µ‚½B >> "%LOGFILE%"
+    exit 0
+)

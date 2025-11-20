@@ -18,7 +18,7 @@ set SS=%TIME:~6,2%
 REM パス関連
 set CURRENT_PATH=%~dp0
 set LOG_DIR_PATH=%CURRENT_PATH%\tdash_test_logs\%YYYY%%DATE_MM%%DD%
-set OUTPUT_REPORT_DIR_PATH=%CURRENT_PATH%\output_report_dir
+set OUTPUT_REPORT_DIR_PATH=%CURRENT_PATH%\output_report_dir\%YYYY%%DATE_MM%%DD%
 
 REM 必要なディレクトリを作る
 mkdir %LOG_DIR_PATH% >nul 2>&1
