@@ -17,15 +17,15 @@ set SS=%TIME:~6,2%
 
 REM パス関連
 set CURRENT_PATH=%~dp0
-set LOG_PATH=%CURRENT_PATH%\tdash_test_logs
+set LOG_DIR_PATH=%CURRENT_PATH%\tdash_test_logs\%YYYY%%DATE_MM%%DD%
 set OUTPUT_REPORT_DIR_PATH=%CURRENT_PATH%\output_report_dir
 
 REM 必要なディレクトリを作る
-mkdir %LOG_PATH% >nul 2>&1
+mkdir %LOG_DIR_PATH% >nul 2>&1
 mkdir %OUTPUT_REPORT_DIR_PATH% >nul 2>&1
 
 REM 絶対パスでログファイル(形式：tdash_test_logs\yyyyMMdd_HHmmss.txt)
-set LOGFILE=%LOG_PATH%\%YYYY%%DATE_MM%%DD%_%HH%%TIME_MM%%SS%_testrun_tdash.txt
+set LOGFILE=%LOG_DIR_PATH%\%HH%%TIME_MM%%SS%_testrun_tdash.log
 
 REM T-DASHインストールディレクトリへ移動(ここからの実行でないと、test_runが失敗する)
 cd %USERPROFILE%\AppData\Local\Programs\T-DASH
