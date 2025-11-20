@@ -25,7 +25,7 @@ mkdir %LOG_PATH% >nul 2>&1
 mkdir %OUTPUT_REPORT_DIR_PATH% >nul 2>&1
 
 REM 絶対パスでログファイル(形式：tdash_test_logs\yyyyMMdd_HHmmss.txt)
-set LOGFILE=%LOG_PATH%\%YYYY%%DATE_MM%%DD%_%HH%%TIME_MM%%SS%_test.txt
+set LOGFILE=%LOG_PATH%\%YYYY%%DATE_MM%%DD%_%HH%%TIME_MM%%SS%_testrun_tdash.txt
 
 REM T-DASHインストールディレクトリへ移動(ここからの実行でないと、test_runが失敗する)
 cd %USERPROFILE%\AppData\Local\Programs\T-DASH
