@@ -7,7 +7,12 @@ set YYYY=%DATE:~0,4%
 set MM=%DATE:~5,2%
 set THRESHOLD=%YYYY%%MM%00
 
-for %%D in (tdash_test_logs output_report_dir) do (
+REM ÉpÉXä÷òA
+set CURRENT_PATH=%~dp0
+set LOG_DIR_PATH=%CURRENT_PATH%\tdash_test_logs
+set OUTPUT_REPORT_DIR_PATH=%CURRENT_PATH%\output_report_dir
+
+for %%D in (%LOG_DIR_PATH% %OUTPUT_REPORT_DIR_PATH%) do (
     for /d %%F in ("%%D\*") do (
         if "%%~nxF" lss "%THRESHOLD%" (
             echo çÌèú: %%F
