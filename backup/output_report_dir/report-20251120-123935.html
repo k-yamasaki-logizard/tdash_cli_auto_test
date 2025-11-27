@@ -1,0 +1,1038 @@
+<!DOCTYPE html>
+<html>
+<head>
+  <script src="report_data/js/jquery3.7.1.min.js"></script>
+  <script src="report_data/js/tailwind.js"></script>
+  <script src="report_data/js/jsrender.min.js"></script>
+  <script src="report_data/js/jsrender-unicode.min.js"></script>
+  <script src="report_data/js/jsviews.min.js"></script>
+  <script src="report_data/js/lang.js"></script>
+  <script src="report_data/js/text_formatter.js"></script>
+  <script src="report_data/js/data.js"  charset="UTF-8"></script>
+  <link rel="stylesheet" href="report_data/css/report.css" type="text/css">
+  <title></title>
+</head>
+<body>
+  <div id="app">
+    <div id="run_report_container"></div>
+    <div id="suite_report_container"></div>
+    <div id="detail_tree_container"></div>
+  </div>
+  
+  <!-- Declare a JsRender template, in a script block: -->
+  <script>
+    let deepcopy_fn=(obj)=>{
+      //データをディプコピーする
+      return structuredClone(obj)
+    }
+  </script>
+  <script  type="text/x-jsrender" id="header_template">
+    <div class="header flex flex-row justify-between">
+      <!-- タイトル -->
+      <div class="header-title">
+        {{if extra_info.is_run}}
+          {{if extra_info.is_suite_page}}
+            <span>{^{: ~lang.run_title}}</span>
+          {{else}}
+            <span>{^{: ~lang.run_title_total}}</span>
+          {{/if}}
+        {{else}}
+          <span>{^{: ~lang.suite_title}}</span>
+        {{/if}}
+      </div>
+      <div class="tdash-logo">
+        <!-- ロゴ -->
+        <a href="https://www.t-dash.io/" target="_blank">
+          <img src="report_data/img/tdash_logo.svg" alt="logo" />
+        </a>
+        <!-- 言語切り替えドロップダウン -->
+        <div>
+          <div id="select-lang" class="select-lang-area">
+            
+            <select id="select-lang-select" data-link="{on 'change' change}">
+              <option value="ja">日本語</option>
+              <option value="en">English</option>
+            </select>
+          </div>
+        </div>
+      </div>
+      <!-- ログへのリンク -->
+      <button class="log-button" onClick="open_log_file()">Log</button>
+    </div>
+    
+  </script>
+  <script type="text/x-jsrender" id="total_summary_template">
+    <div class="sub-title">
+      <span>{{:summary.display_for_title }}</span>
+    </div>
+    <div class="plan-total">
+      <!-- 開始日時 実行時間 -->
+      <div class="flex flex-row">
+        <div class="plan-time-col">
+          <span>{^{:~lang.start_date}}:{{:summary.starttime }}</span>
+        </div>
+        <div class="plan-time-col">
+          <span>{^{:~lang.run_time}}:{{:summary.difftime }}</span>
+        </div>
+      </div>
+      <!-- チャート -->
+      <div class="chart-area">
+        {{include summary tmpl="#barchart_template"/}}
+      </div>
+      <div class="flex flex-row">
+        <div class="marker-guide">
+          <span>{^{:~lang.run_case_amount}}</span>
+          <span>{{:summary.case_count }}</span>
+        </div>
+        <div class="marker-guide">
+          <span class="passed-color">■</span>
+          <span>{^{:~lang.pass}}</span>
+          <span>{{:summary.pass }}</span>
+        </div>
+        <div class="marker-guide">
+          <span class="fail-color">■</span>
+          <span>{^{:~lang.fail}}</span>
+          <span>{{:summary.fail }}</span>
+        </div>
+        <div class="marker-guide">
+          <span class="skip-color">■</span>
+          <span>{^{:~lang.skip}}</span>
+          <span>{{:summary.skip }}</span>
+        </div>
+        <div class="marker-guide">
+          <span class="not-run-color">■</span>
+          {^{:~lang.not_run}}
+          <span>0</span>
+        </div>
+      </div>
+    </div>
+
+  </script>
+  
+  <script type="text/x-jsrender" id="suite_template">
+    {{include tmpl="#header_template"/}}
+    {{include tmpl="#total_summary_template"/}}
+    <div class="sub-title"> 
+      <span>{^{:~lang.suite_summary_title}}</span>
+    </div>
+    {{include suite_statistic_data tmpl="#suite_statistic_template"/}}
+    
+    <div class="sub-title"> 
+      <span>{^{:~lang.env_suite_title}}</span>
+    </div>
+    {{include suite_summary tmpl="#suite_env_template"/}}
+    
+    <div class="sub-title"> 
+      <span>{^{:~lang.execute_detail_title}}</span>
+    </div>
+    
+    <!-- フィルター -->
+    <div class="sub_title">
+      <div class="filter_status flex-row">
+        <div>
+          <input type="checkbox" class="checkbox checkbox_result" value="PASS"/>
+          <label class="filter_label">{^{:~lang.pass}}</label>
+        </div>
+        <div>
+          <input type="checkbox" class="checkbox checkbox_result" value="FAIL"/>
+          <label class="filter_label">{^{:~lang.fail}}</label>
+        </div>
+        <div>
+          <input type="checkbox" class="checkbox checkbox_result" value="SKIP"/>
+          <label class="filter_label">{^{:~lang.skip}}</label>
+        </div>
+        <div>
+          <input type="checkbox" class="checkbox checkbox_result" value="NOT RUN"/>
+          <label class="filter_label">{^{:~lang.not_run}}</label>
+        </div>
+        {{if extra_info.is_desktop_app == false && extra_info.is_mobile_app == false}}
+        <div>
+          <input type="checkbox" class="checkbox checkbox_env" value="chrome"/>
+          <label class="filter_label">Google Chrome</label>
+        </div>
+        <div>
+          <input type="checkbox" class="checkbox checkbox_env" value="firefox"/>
+          <label class="filter_label">Fire Fox</label>
+        </div>
+        <div>
+          <input type="checkbox" class="checkbox checkbox_env" value="edge"/>
+          <label class="filter_label">Microsoft Edge</label>
+        </div>
+        <div>
+          <input type="checkbox" class="checkbox checkbox_env" value="anytest"/>
+          <label class="filter_label">AnyTest</label>
+        </div>
+        {{/if}}
+      </div>
+    </div>
+  </script>
+  <script type="text/x-jsrender" id="run_template">
+    {{include tmpl="#header_template"/}}
+    {{include tmpl="#total_summary_template"/}}
+    <div class="sub-title"> 
+      <span>{^{: ~lang.run_summary_title}}</span>
+    </div>
+    {{include tmpl="#run_summary_template"/}}
+  </script>
+
+  
+  <script  type="text/x-jsrender" id="barchart_template">
+    <div
+      class="chart-content flex flex-row"
+      data-link="{on 'mouseover' ~mouseover}{on 'mouseout' ~mouseout}"
+    >
+      <div class="tooltip-base flex flex-col" style="display:none;">
+        <div class="flex flex-row justify-between m-1 tooltip-rate">
+          <div class="flex flex-row">
+            <span class="passed-color">■</span>
+            <span>{^{:~lang.pass}} </span>
+          </div>
+          <span>{{>~get_results_rate(pass,fail,skip)["pass_count"]}}%</span>
+
+        </div>
+        <div class="flex flex-row justify-between m-1 tooltip-rate">
+          <div class="flex flex-row">
+            <span class="fail-color">■</span>
+            <span>{^{: ~lang.fail}} </span>
+          </div>
+          <span>{{>~get_results_rate(pass,fail,skip)["fail_count"]}}%</span>
+        </div>
+        <div class="flex flex-row justify-between m-1 tooltip-rate">
+          <div class="flex flex-row">
+            <span class="skip-color">■</span>
+            <span>{^{: ~lang.skip}} </span>
+          </div>
+          <span>{{>~get_results_rate(pass,fail,skip)["skip_count"]}}%</span>
+        </div>
+        <div class="flex flex-row justify-between m-1 tooltip-rate">
+          <div class="flex flex-row">
+            <span class="not-run-color">■</span>
+            <span>{^{:~lang.not_run}} </span>
+          </div>
+          <span>0%</span>
+        </div>
+  
+      </div>
+      <div class="passed" style="width:{{>~get_results_rate(pass,fail,skip)["pass_count"]}}%;"></div>
+      <div class="fail" style="width:{{>~get_results_rate(pass,fail,skip)["fail_count"]}}%;"></div>
+      <div class="skip" style="width:{{>~get_results_rate(pass,fail,skip)["skip_count"]}}%;"></div>
+      <div class="not-run" style="width:0%;"></div>
+    </div>
+    
+  </script>
+
+  <script type="text/x-jsrender" id="run_summary_template">
+      <!--テストラン統計レポート-->
+      <table style="width:100%;">
+        <thead>
+          <tr>
+            <th colspan="2" style="min-width: 100px; max-width: 300px;" data-link="{on ~sortCol ~sortBy ~reverseSort 'display_name'}">
+              <div class="table-header-col">
+                <span class="table-header-title">{^{:~lang.run_name}}</span>
+                <span data-link="class{:~sortBy==='display_name'?~reverseSort? 'caret-wrapper desc':'caret-wrapper asc':'caret-wrapper'}">
+                  <i class="sort-caret ascending"></i>
+                  <i class="sort-caret descending"></i>
+                </span>
+              </div>
+            </th>
+            <th colspan="1" style="min-width: 60px; width: 120px;" data-link="{on ~sortCol ~sortBy ~reverseSort 'case_count'}">
+              <div class="table-header-col">
+                <span class="table-header-title">{^{:~lang.case_amount}}</span>
+                <span data-link="class{:~sortBy==='case_count'?~reverseSort? 'caret-wrapper desc':'caret-wrapper asc':'caret-wrapper'}">
+                  <i class="sort-caret ascending"></i>
+                  <i class="sort-caret descending"></i>
+                </span>
+              </div>
+            </th>
+            <th colspan="1" style="min-width: 60px; width: 120px;" data-link="{on ~sortCol ~sortBy ~reverseSort 'pass'}">
+              <div class="table-header-col">
+                <span class="table-header-title">{^{:~lang.pass_amount}}</span>
+                <span data-link="class{:~sortBy==='pass'?~reverseSort? 'caret-wrapper desc':'caret-wrapper asc':'caret-wrapper'}">
+                  <i class="sort-caret ascending"></i>
+                  <i class="sort-caret descending"></i>
+                </span>
+              </div>
+            </th>
+            <th colspan="1" style="min-width: 60px; width: 120px;" data-link="{on ~sortCol ~sortBy ~reverseSort 'fail'}">
+              <div class="table-header-col">
+                <span class="table-header-title">{^{:~lang.fail_amount}}</span>
+                <span data-link="class{:~sortBy==='fail'?~reverseSort? 'caret-wrapper desc':'caret-wrapper asc':'caret-wrapper'}">
+                  <i class="sort-caret ascending"></i>
+                  <i class="sort-caret descending"></i>
+                </span>
+              </div>
+            </th>
+            <th colspan="1" style="min-width: 60px; width: 120px;" data-link="{on ~sortCol ~sortBy ~reverseSort 'skip'}">
+              <div class="table-header-col">
+                <span class="table-header-title">{^{:~lang.skip_amount}}</span>
+                <span data-link="class{:~sortBy==='skip'?~reverseSort? 'caret-wrapper desc':'caret-wrapper asc':'caret-wrapper'}">
+                  <i class="sort-caret ascending"></i>
+                  <i class="sort-caret descending"></i>
+                </span>
+              </div>
+            </th>
+            <th colspan="1" style="min-width: 60px; width: 120px;" data-link="{on ~sortCol ~sortBy ~reverseSort 'pass_rate'}">
+              <div class="table-header-col">
+                <span class="table-header-title">{^{:~lang.pass_rate}}</span>
+                <span data-link="class{:~sortBy==='pass_rate'?~reverseSort? 'caret-wrapper desc':'caret-wrapper asc':'caret-wrapper'}">
+                  <i class="sort-caret ascending"></i>
+                  <i class="sort-caret descending"></i>
+                </span>
+              </div>
+            </th>
+            <th colspan="1" style="min-width: 100px; width: 300px;">
+              <div class="table-header-col">
+                <span class="table-header-title"></span>
+              </div>
+            </th>
+          </tr>
+        </thead>
+        <tbody>
+            {^{for summary_data_list  sort=~sortBy reverse=~reverseSort sorted=~sorted}}
+              
+                <tr>
+                  <td colspan="2" class="text-col">
+                    <button type="button" class="tdash-link" onclick="open_new_tab({{:run_idx}})">
+                      <span>{{:display_name}}</span>
+                    </button>
+                  </td>
+                  
+                  <td colspan="1"><span>{{:case_count}}</span></td>
+                  <td colspan="1"><span>{{:pass}}</span></td>
+                  <td colspan="1"><span>{{:fail}}</span></td>
+                  <td colspan="1"><span>{{:skip}}</span></td>
+                  <td colspan="1"><span>{{:pass_rate}}%</span></td>
+                  <td colspan="1"><div style="width: 100%; height: 20px;">{{include tmpl="#barchart_template"/}}</div></td>
+                </tr>
+                {{for browser_list }}
+                  <tr>
+                    <td class="list-indent"></td>
+                    <td>{{:display_name}}</td>
+                    <td colspan="1"><span>{{:case_count}}</span></td>
+                    <td colspan="1"><span>{{:pass}}</span></td>
+                    <td colspan="1"><span>{{:fail}}</span></td>
+                    <td colspan="1"><span>{{:skip}}</span></td>
+                    <td colspan="1"><span>{{:pass_rate}}%</span></td>
+                    <td colspan="1"><div style="width: 100%; height: 20px;">{{include tmpl="#barchart_template"/}}</div></td>
+                  </tr>
+                {{/for}}
+              
+            {{/for}}
+          </tbody></table>
+
+  </script>
+  <script type="text/x-jsrender" id="suite_statistic_template">
+    <!--テストスイート 統計サマリ-->
+    <table style="width:100%;">
+      <thead>
+        <tr>
+          <th colspan="2" style="min-width: 100px; max-width: 300px;" data-link="{on ~sortCol ~sortBy ~reverseSort 'display_name'}">
+            <div class="table-header-col">
+              <span class="table-header-title">{^{:~lang.suite_name}}</span>
+              <span data-link="class{:~sortBy==='display_name'?~reverseSort? 'caret-wrapper desc':'caret-wrapper asc':'caret-wrapper'}">
+                <i class="sort-caret ascending"></i>
+                <i class="sort-caret descending"></i>
+              </span>
+            </div>
+          </th>
+          <th colspan="1" style="min-width: 60px; width: 120px;" data-link="{on ~sortCol ~sortBy ~reverseSort 'case_count'}">
+            <div class="table-header-col">
+              <span class="table-header-title">{^{:~lang.case_amount}}</span>
+              <span data-link="class{:~sortBy==='case_count'?~reverseSort? 'caret-wrapper desc':'caret-wrapper asc':'caret-wrapper'}">
+                <i class="sort-caret ascending"></i>
+                <i class="sort-caret descending"></i>
+              </span>
+            </div>
+          </th>
+          <th colspan="1" style="min-width: 60px; width: 120px;" data-link="{on ~sortCol ~sortBy ~reverseSort 'pass'}">
+            <div class="table-header-col">
+              <span class="table-header-title">{^{:~lang.pass_amount}}</span>
+              <span data-link="class{:~sortBy==='pass'?~reverseSort? 'caret-wrapper desc':'caret-wrapper asc':'caret-wrapper'}">
+                <i class="sort-caret ascending"></i>
+                <i class="sort-caret descending"></i>
+              </span>
+            </div>
+          </th>
+          <th colspan="1" style="min-width: 60px; width: 120px;" data-link="{on ~sortCol ~sortBy ~reverseSort 'fail'}">
+            <div class="table-header-col">
+              <span class="table-header-title">{^{:~lang.fail_amount}}</span>
+              <span data-link="class{:~sortBy==='fail'?~reverseSort? 'caret-wrapper desc':'caret-wrapper asc':'caret-wrapper'}">
+                <i class="sort-caret ascending"></i>
+                <i class="sort-caret descending"></i>
+              </span>
+            </div>
+          </th>
+          <th colspan="1" style="min-width: 60px; width: 120px;" data-link="{on ~sortCol ~sortBy ~reverseSort 'skip'}">
+            <div class="table-header-col">
+              <span class="table-header-title">{^{:~lang.skip_amount}}</span>
+              <span data-link="class{:~sortBy==='skip'?~reverseSort? 'caret-wrapper desc':'caret-wrapper asc':'caret-wrapper'}">
+                <i class="sort-caret ascending"></i>
+                <i class="sort-caret descending"></i>
+              </span>
+            </div>
+          </th>
+          <th colspan="1" style="min-width: 60px; width: 120px;" data-link="{on ~sortCol ~sortBy ~reverseSort 'pass_rate'}">
+            <div class="table-header-col">
+              <span class="table-header-title">{^{:~lang.pass_rate}}</span>
+              <span data-link="class{:~sortBy==='pass_rate'?~reverseSort? 'caret-wrapper desc':'caret-wrapper asc':'caret-wrapper'}">
+                <i class="sort-caret ascending"></i>
+                <i class="sort-caret descending"></i>
+              </span>
+            </div>
+          </th>
+          <th colspan="1" style="min-width: 100px; width: 300px;">
+            <div class="table-header-col">
+              <span class="table-header-title"></span>
+            </div>
+          </th>
+        </tr>
+      </thead>
+      <tbody>
+          {^{for suite_statistic_data  sort=~sortBy reverse=~reverseSort sorted=~sorted}}
+              <tr>
+                <td colspan="2" class="text-col">{{:display_name}}</td>
+                <td colspan="1"><span>{{:case_count}}</span></td>
+                <td colspan="1"><span>{{:pass}}</span></td>
+                <td colspan="1"><span>{{:fail}}</span></td>
+                <td colspan="1"><span>{{:skip}}</span></td>
+                <td colspan="1"><span>{{:pass_rate}}%</span></td>
+                <td colspan="1"><div style="width: 100%; height: 20px;">{{include tmpl="#barchart_template"/}}</div></td>
+              </tr>
+          {{/for}}
+        </tbody></table>
+
+</script>
+<script type="text/x-jsrender" id="suite_env_template">
+    <!--テスト実施環境 x テストスイート-->
+    <table style="width:100%;">
+      <thead>
+        <tr>
+          <th colspan="2" style="min-width: 100px; max-width: 300px;" data-link="{on ~sortCol_env ~sortBy_env ~reverseSort_env 'display_name'}">
+            <div class="table-header-col">
+              <span class="table-header-title">{^{:~lang.testenv_name}}</span>
+              <span data-link="class{:~sortBy_env==='display_name'?~reverseSort_env? 'caret-wrapper desc':'caret-wrapper asc':'caret-wrapper'}">
+                <i class="sort-caret ascending"></i>
+                <i class="sort-caret descending"></i>
+              </span>
+            </div>
+          </th>
+          <th colspan="1" style="min-width: 60px; width: 120px;" data-link="{on ~sortCol_env ~sortBy_env ~reverseSort_env 'case_count'}">
+            <div class="table-header-col">
+              <span class="table-header-title">{^{:~lang.case_amount}}</span>
+              <span data-link="class{:~sortBy_env==='case_count'?~reverseSort_env? 'caret-wrapper desc':'caret-wrapper asc':'caret-wrapper'}">
+                <i class="sort-caret ascending"></i>
+                <i class="sort-caret descending"></i>
+              </span>
+            </div>
+          </th>
+          <th colspan="1" style="min-width: 60px; width: 120px;" data-link="{on ~sortCol_env ~sortBy_env ~reverseSort_env 'pass'}">
+            <div class="table-header-col">
+              <span class="table-header-title">{^{:~lang.pass_amount}}</span>
+              <span data-link="class{:~sortBy_env==='pass'?~reverseSort_env? 'caret-wrapper desc':'caret-wrapper asc':'caret-wrapper'}">
+                <i class="sort-caret ascending"></i>
+                <i class="sort-caret descending"></i>
+              </span>
+            </div>
+          </th>
+          <th colspan="1" style="min-width: 60px; width: 120px;" data-link="{on ~sortCol_env ~sortBy_env ~reverseSort_env 'fail'}">
+            <div class="table-header-col">
+              <span class="table-header-title">{^{:~lang.fail_amount}}</span>
+              <span data-link="class{:~sortBy_env==='fail'?~reverseSort_env? 'caret-wrapper desc':'caret-wrapper asc':'caret-wrapper'}">
+                <i class="sort-caret ascending"></i>
+                <i class="sort-caret descending"></i>
+              </span>
+            </div>
+          </th>
+          <th colspan="1" style="min-width: 60px; width: 120px;" data-link="{on ~sortCol_env ~sortBy_env ~reverseSort_env 'skip'}">
+            <div class="table-header-col">
+              <span class="table-header-title">{^{:~lang.skip_amount}}</span>
+              <span data-link="class{:~sortBy_env==='skip'?~reverseSort_env? 'caret-wrapper desc':'caret-wrapper asc':'caret-wrapper'}">
+                <i class="sort-caret ascending"></i>
+                <i class="sort-caret descending"></i>
+              </span>
+            </div>
+          </th>
+          <th colspan="1" style="min-width: 60px; width: 120px;" data-link="{on ~sortCol_env ~sortBy_env ~reverseSort_env 'pass_rate'}">
+            <div class="table-header-col">
+              <span class="table-header-title">{^{:~lang.pass_rate}}</span>
+              <span data-link="class{:~sortBy_env==='pass_rate'?~reverseSort_env? 'caret-wrapper desc':'caret-wrapper asc':'caret-wrapper'}">
+                <i class="sort-caret ascending"></i>
+                <i class="sort-caret descending"></i>
+              </span>
+            </div>
+          </th>
+          <th colspan="1" style="min-width: 100px; width: 300px;">
+            <div class="table-header-col">
+              <span class="table-header-title"></span>
+            </div>
+          </th>
+        </tr>
+      </thead>
+      <tbody>
+          {^{for suite_summary sort=~sortBy_env reverse=~reverseSort_env sorted=~sorted}}
+
+            <tr>
+              <td colspan="2" class="text-col">
+                <span>{{:display_name}}</span>
+              </td>
+              
+              <td colspan="1"><span>{{:case_count}}</span></td>
+              <td colspan="1"><span>{{:pass}}</span></td>
+              <td colspan="1"><span>{{:fail}}</span></td>
+              <td colspan="1"><span>{{:skip}}</span></td>
+              <td colspan="1"><span>{{:pass_rate}}%</span></td>
+              <td colspan="1"><div style="width: 100%; height: 20px;">{{include tmpl="#barchart_template"/}}</div></td>
+            </tr>
+            {{for suite_list }}
+              <tr>
+                <td class="list-indent"></td>
+                <td>{{:suite_name}}</td>
+                <td colspan="1"><span>{{:case_count}}</span></td>
+                <td colspan="1"><span>{{:pass}}</span></td>
+                <td colspan="1"><span>{{:fail}}</span></td>
+                <td colspan="1"><span>{{:skip}}</span></td>
+                <td colspan="1"><span>{{:pass_rate}}%</span></td>
+                <td colspan="1"><div style="width: 100%; height: 20px;">{{include tmpl="#barchart_template"/}}</div></td>
+              </tr>
+            {{/for}}
+          {{/for}}
+        </tbody>
+    </table>
+</script>
+
+<script type="text/x-jsrender" id="detail_tree_template">
+  <div class="detail_area">
+    {{tree/}}
+  </div>
+</script>
+<script type="text/x-jsrender" id="procedure_template">
+  <div class="flex-row procedure_row">
+    {{for start=2 end=depth}}
+        <div class="opened_row"></div>
+    {{/for}}
+    {{state_icon/}}
+    <div class="procedure_name_label text_left">
+      {{if name!='Force Stop' && name!='force_stop'}}
+          <span>{{:~formatNewlines(display_name)}}</span>
+      {{else}}
+          <span>error</span>
+      {{/if}}
+    </div> 
+    {{runtime_text/}}
+  </div>
+  {{keyword_extra_info/}}
+</script>
+<script>
+
+    //detail 登録
+    (function($) {
+      "use strict";
+
+      $.views.tags({
+        state_icon:{
+          template:
+          '<div class="state_icon">'+
+            '<div class="{{icon_class:status}}"></div>'+
+          '</div>',
+        },
+        title_text:{
+          template:
+          '{{if type==\'env\'}}'+
+            '<div data-link="class{lowercase:\'browser_name_label text_left \'}">'+
+          '{{else type==\'suite\'}}'+
+            '<div data-link="class{lowercase:\'scenario_name_label text_left \'+ status}">'+
+          '{{else type==\'test\'}}'+
+            '<div data-link="class{lowercase:\'case_name_label text_left \'+ status}">'+
+          '{{else}}'+
+            '<div data-link="class{lowercase:\'procedure_name_label text_left \'+ status}">'+
+          '{{/if}}'+
+              '<div class="row_text">'+
+                '{{>display_name}}'+
+            '</div>'+          
+          '</div>'
+        },
+        runtime_text:{
+          template:
+          '{{if type==\'test\' || type==\'suite\'}}' +
+            '<div data-link="class{lowercase:\'case_time_label \'+ status}">'+
+              '<div class="row_text" style="height:21px;">{{>difftime }}</div>'+
+            '</div>'+         
+          '{{else type==\'kw\'}}'+
+            '<div class="procedure_time_label">{{>difftime}}</div>'+  
+          '{{/if}}'
+        },
+        keyword_extra_info:{
+          template:
+            '<div class="flex-row procedure_row">'+
+                '{{for start=2 end=depth}}'+
+                    '<div class="opened_row"></div>'+
+                '{{/for}}'+
+                '<div class="msg-fail-area">'+
+                  '<span class="msg-fail">{{>fail_log}}</span>'+
+                '</div>'+
+            '</div>'+
+            '<div class="flex-row procedure_row">'+
+                '{{for start=2 end=depth}}'+
+                    '<div class="opened_row"></div>'+
+                '{{/for}}'+
+                '{{if image_paths.length>0}}'+
+                  '<div class="flex flex-row">'+
+                    '{{for image_paths}}'+
+                      '<div style="margin: 5px 30px">'+
+                        '<a href="{{:path}}" target="_blank">'+
+                          '<img src="{{:path}}" style="width: 400px"/>'+
+                        '</a>'+
+                      '</div>'+
+                    '{{/for}}'+
+                  '</div>'+
+                '{{/if}}'+
+            '</div>'
+          //screenshot, fail info
+        },
+        tree: {
+          template:
+            '{{if type==\'env\'}}'+
+              '<div class="max-width browser_row filter_row env_{{>env}} stat_{{>status}}" id="" onclick="insert_procedure(this,event);">'+
+            '{{else case_id!=undefined}}'+
+              '<div class="max-width  filter_row env_{{>env}} stat_{{>status}}" id="{{>case_id}}" onclick="insert_procedure(this,event);" >'+
+            '{{else}}'+
+            // jsonデータの中にjqeryXXXXXXのものが勝手に入られたので、表示させないように
+              '<div style="display:none">'+
+            '{{/if}}'+
+              //title
+              '<div class="title_div" onclick="extend_child(this,event);"">'+
+              '<div class="transition duration-200 flex-row max-width accordion_title" >'+
+                  '<div class="test-accordion-title max-width" >' +
+                    '<div class="flex-row">'+
+                      '{{for start=2 end=depth}}'+
+                        '<div class="opened_row"></div>'+
+                      '{{/for}}'+
+                      '{{state_icon/}}'+
+                      '{{title_text/}}'+
+                      '{{runtime_text/}}'+
+                    '</div>'+
+                  '</div>' +
+                  '<button class="toggle_button"  >' +
+                    //:expandedの書き方効かないので{{if}}の書き方で対応する
+                    '{^{if type=="test"}}' +
+                      '<div class="arrow_down_bold_icon transition duration-200 rotate-0"></div>'+
+                    '{{else}}' +
+                      '<div class="arrow_down_bold_icon transition duration-200 rotate-180"></div>'+
+                    '{{/if}}' +
+                  '</button>' +
+              '</div>' +
+              //手順の表示は別で処理する
+            '</div>'+
+              '<div class="child_div" style="display:block;">'+
+                '{{for child}}' +
+                    '<div class="transition-all duration-200 overflow-hidden max-h-f-content">' +
+                        '{{tree/}}' +
+                    '</div>'+
+                  '{{/for}}' +
+              '</div>'+
+            '</div>' ,    
+        }
+      });
+
+      })(this.jQuery);
+
+      $.views.converters({
+        "lowercase":function(val) {
+          let field = this.tagCtx.props.class;
+          return val.toLowerCase();
+        },
+        "icon_class":function(val){
+          let res=""
+          let list={
+            "PASS":"pass_icon",
+            "FAIL":"fail_icon",
+            "SKIP":"skip_icon",
+            "NOT RUN":"not_run_icon"
+          }
+          key_list=Object.keys(list)
+          if(key_list.includes(val)){
+            res=list[val]
+          }
+          return res
+        },
+      });
+      let barchart_helpers = {
+        mouseover: function(ev) {
+          let target=ev.currentTarget.getElementsByClassName("tooltip-base")[0]
+          target.style.display="block"
+        },
+        mouseout: function(ev) {
+          let target=ev.currentTarget.getElementsByClassName("tooltip-base")[0]
+          target.style.display="none"
+        },
+        get_results_rate:function(pass_count,fail_count,skip_count){
+          //ロジックをmodel/common.py get_results_rateに合わせる
+          let res={"pass_count":0,"fail_count":0,"skip_count":0}
+          if (Number.isNaN(Number(pass_count))){
+            pass_count = 0
+          }
+          if (Number.isNaN(Number(fail_count))){
+            pass_count = 0
+          }
+          if (Number.isNaN(Number(skip_count))){
+            pass_count = 0
+          }
+          let total_count = pass_count + fail_count + skip_count
+          // 0件の場合の対応
+          if (total_count === 0){
+            return res
+          }
+          pass_rate = (pass_count / total_count) * 100
+          if (0 < pass_rate && pass_rate <1){
+            pass_rate = 1
+          }
+          pass_rate = parseInt(pass_rate)
+          fail_rate = (fail_count / total_count) * 100
+          if (0 < fail_rate && fail_rate <1){
+            fail_rate = 1
+          }
+          fail_rate = parseInt(fail_rate)
+          skip_rate =(skip_count / total_count) * 100
+          if (0 < skip_rate && skip_rate <1){
+            skip_rate = 1
+          }
+          skip_rate = parseInt(skip_rate)
+          // 四捨五入したことにより、合計が100でなくなる場合
+          // 最も割合が高いもので調整
+          total_rate = pass_rate + skip_rate + fail_rate
+          if(total_rate !== 100){
+            let max_rate = Math.max(pass_rate, fail_rate, skip_rate)
+            diff_rate = total_rate - 100
+            // 調整する値が-2の場合
+            if(diff_rate === -2){
+              // 調整する値が2で最大割合が同数の場合、均等に分割する
+              if(pass_rate === max_rate && fail_rate === max_rate){
+                pass_rate += 1
+                fail_rate += 1
+              }else if(pass_rate === max_rate && skip_rate === max_rate){
+                pass_rate += 1
+                skip_rate += 1
+              }else if(fail_rate === max_rate && skip_rate === max_rate){
+                fail_rate += 1
+                skip_rate += 1
+              }else{
+                if(fail_rate === max_rate){
+                  fail_rate -= diff_rate
+                }else if(skip_rate === max_rate){
+                  skip_rate -= diff_rate
+                }else{
+                  pass_rate -= diff_rate
+                }
+              }
+            }else{
+              if(fail_rate === max_rate){
+                fail_rate -= diff_rate
+              }else if(skip_rate === max_rate){
+                skip_rate -= diff_rate
+              }else{
+                pass_rate -= diff_rate
+              }
+            } 
+          }
+          res={"pass_count":pass_rate,"fail_count":fail_rate,"skip_count":skip_rate}
+          return res
+        }
+      }
+      
+
+      let table_helpers={
+        sortBy: null,
+        reverseSort: false,
+        sortCol: function(sortBy, reverseSort, field, ev, eventArgs) {
+          let view = eventArgs.view;
+          //同じテンプレートに複数テーブルを対応できるため、fieldの後ろに識別子を追加する
+          let datafield=field.split("#")[0]
+         reverseSort = sortBy === field // Cycle through sequence: No sort/Sort/Reverse sort/...
+            ? !reverseSort
+            : false;
+          sortBy = sortBy === field
+            ? reverseSort
+              ? sortBy
+              : false
+            : field;
+          
+          view.ctxPrm("sortBy", sortBy).ctxPrm("reverseSort", reverseSort);
+        },
+        //TODO: リファクタリング、sortBy_envなど処理を分けられないようにする
+        //スイートレポートで両テーブルのアイコンがお互い影響されたため分けて処理する
+        sortBy_env: null,
+        reverseSort_env: false,
+        sortCol_env: function(sortBy, reverseSort, field, ev, eventArgs) {
+          let view = eventArgs.view;
+          let datafield=field.split("#")[0]
+         reverseSort = sortBy === field
+            ? !reverseSort
+            : false;
+          sortBy = sortBy === field
+            ? reverseSort
+              ? sortBy
+              : false
+            : field;
+          
+          view.ctxPrm("sortBy_env", sortBy).ctxPrm("reverseSort_env", reverseSort);
+        },
+      }
+</script>
+<script>
+
+    function extend_child(obj,e){
+      //画面データの表示・折りたたむ
+      let $title_div=$(obj)
+      let $child_div=$(obj).siblings("div.child_div").first()
+      let is_extened=$title_div.find(".arrow_down_bold_icon").hasClass("rotate-0") //clickした後の状態
+      if(is_extened){
+        $title_div.find(".arrow_down_bold_icon").removeClass("rotate-0")
+        $title_div.find(".arrow_down_bold_icon").addClass("rotate-180")
+        $child_div.show()
+      }else{
+        $title_div.find(".arrow_down_bold_icon").removeClass("rotate-180")
+        $title_div.find(".arrow_down_bold_icon").addClass("rotate-0")
+        $child_div.hide()
+        
+      }
+    }
+    function insert_procedure(obj,e){
+      //手順の表示・挿入
+      e.stopPropagation()
+      $(".procedure_row").addEventListener("click",(event)=>{
+        //手順のバブリングイベントを止める
+        event.stopPropagation()
+      })
+      let case_id=$(obj).attr("id")
+      if(case_id.length === 0)
+        return false
+      let res=""
+      let case_data=[]
+      let p_data=procedure_data()
+      let $child_div=$(obj).children("div.child_div")
+      for (let i=0 ;i< p_data.length;i++) 
+      {
+        if (case_id === p_data[i].case_id){
+          case_data.push(p_data[i])
+        }
+      }
+      if(case_data.length > 0){
+        $child_div.empty()
+      }
+      res=$.templates("#procedure_template").render(case_data)
+      $child_div.append(res)
+      p_data = null //メモリ解放
+    }
+
+    function create_run_report(){
+      //ランレポートをレンダーする
+      let data={}
+      data["summary_data_list"]=run_summary["summary_data_list"]
+      data["summary"]=run_summary["tests_suite_data"]
+      document.title=run_summary["tests_suite_data"]["display_for_title"]
+      data["extra_info"]=extra_info_data
+      data["extra_info"]["is_suite_page"]=false
+      $.templates("#run_template").link("#run_report_container", data,{ ...table_helpers, ...lang_data, ...barchart_helpers });
+    }
+    
+    let treedata=[]
+    function get_tree_data(display_run_index){
+      //detail_dataから必要分を取る（ランの場合は1ラン分のデータのみ取る）
+      let copydata=deepcopy_fn(detail_data())
+      res=copydata[0]["child"]
+      display_run_index=Number.parseInt(display_run_index)
+      if(!Number.isNaN(display_run_index) && extra_info_data["is_run"]==true){
+        res=copydata[0]["child"][display_run_index]["child"]
+      }
+      copydata = null
+      return res
+    }
+    function create_suite_report(display_run_index){
+      //サマリーテンプレートの登録      
+      let suite_data={}
+      let tempdata={}
+      
+      tempdata = run_summary["summary_data_list"][display_run_index]
+      document.title=tempdata["display_for_title"]
+      suite_data["summary"]=tempdata
+      suite_data["extra_info"]=extra_info_data
+      suite_data["extra_info"]["is_suite_page"]=true
+
+      //詳細データ
+      treedata=get_tree_data(display_run_index)
+      suite_data["suite_summary"]={}
+      suite_data["suite_statistic_data"]={}
+      suite_data["suite_summary"]["suite_summary"]=tempdata["browser_list"]
+      suite_data["suite_statistic_data"]["suite_statistic_data"]=statistic_data[display_run_index]["suite_list"]
+      $.templates("#suite_template").link("#suite_report_container", suite_data,{ ...table_helpers,...lang_data, ...barchart_helpers });
+     
+      
+      //詳細データtemplate
+      $.templates("#detail_tree_template").link("#detail_tree_container", treedata);
+      
+      let p_data=procedure_data()
+      let first_case_id=extra_info_data["is_run"]===true?"s1-s1-s1-t1":"s1-s1-t1"
+      let case_id=first_case_id
+      let case_data=[]
+      let res=""
+      let counter=0
+      const DISPLAY_PROCEDURE_LIMIT_NUM = 3000
+      for (let i=0 ;i< p_data.length;i++) 
+      {
+        let $child_div=$("#"+case_id).children("div.child_div")
+        let $title_div=$("#"+case_id).children("div.title_div")
+        
+        if ((i<p_data.length-1 && case_id !== p_data[i+1].case_id) || i===p_data.length-1){
+          //他のケースの手順を処理する前に上限を超えたら、以下のケースを処理しない
+          if(counter>DISPLAY_PROCEDURE_LIMIT_NUM && case_id !== p_data[i].case_id ){
+            break;
+          }
+          //各ケースの最後エレメントの処理
+          if(i<p_data.length-1 && case_id !== p_data[i+1].case_id && case_id === p_data[i].case_id){
+            case_data.push(p_data[i])
+          }
+          //最後のエレメント
+          if(i===p_data.length-1){
+            case_data.push(p_data[i])
+          }
+          res=$.templates("#procedure_template").render(case_data)
+          
+          $child_div.append(res)
+          $title_div.find(".arrow_down_bold_icon").removeClass("rotate-0")
+          $title_div.find(".arrow_down_bold_icon").addClass("rotate-180")
+          $child_div.show()
+
+          if(i===p_data.length-1){
+            p_data=null //メモリ解放
+            break;
+          }
+          res=null
+          //変数をreset、新しいケースデータの記録を開始する
+          case_id=p_data[i+1].case_id
+          case_data=[]
+        }else{
+          case_data.push(p_data[i])
+        }
+        counter++
+      }
+      
+    }
+  </script>
+
+
+  <script>
+    
+    //ディプコピー
+    let lang_data_all_new = deepcopy_fn(lang_data_all)
+    let default_lang=extra_info_data["default_lang"]?extra_info_data["default_lang"]:"ja"
+    let lang_from_url=new URL(window.location.href).searchParams.get("lang")
+    //スイートレポートへ遷移する時使う
+    if(lang_from_url!==null){
+      default_lang=lang_from_url
+    }
+    let lang_data={
+        lang:lang_data_all_new[default_lang],  
+    }
+
+    document.addEventListener('DOMContentLoaded', function() {
+      let page_url = location.href;
+      if (extra_info_data["is_run"]!==true && !page_url.includes("/ScenarioReport")){
+        //スイートの場合はsncarioreportの画面へ遷移する
+        page_url=`${page_url}?lang=${default_lang}#/ScenarioReport/0`
+        window.location.href=page_url
+      }
+      let hash = window.location.hash
+      let display_run_index = 0
+      if(hash!==""){
+        display_run_index=hash.split("/")[2]
+        create_suite_report(display_run_index)
+        
+      }else{
+        create_run_report()
+      }
+      //言語ドロップメニュー制御
+      $("#select-lang-select").val(default_lang); //初期言語設定
+      $("#app").on("change","#select-lang-select",()=>{
+        let selected_val=$("#select-lang-select").find(":selected").val()
+        let lang_data_all_new = deepcopy_fn(lang_data_all)
+        let lang_data_new={
+          lang:lang_data_all_new[selected_val],  
+        }
+        default_lang=selected_val
+
+        $.observable(lang_data.lang).setProperty(lang_data_new["lang"])
+      })
+      //フィルター機能
+      $("#app").on("change",".checkbox_result, .checkbox_env",()=>{
+        let checked_value={"stat":[],"env":[]}
+        $(".checkbox_result:checked").each((i,item)=>{
+          checked_value["stat"].push(".stat_"+$(item).val())
+        })
+        $(".checkbox_env:checked").each((i,item)=>{
+          checked_value["env"].push(".env_"+$(item).val())
+        })
+
+        if(checked_value["env"].length===0 && checked_value["stat"].length===0){
+          $(".detail_area").find(".filter_row").each((idx,el)=>{
+            $(el).css('display','block')
+          })
+          return
+        }else{
+
+          let selector_str=""
+          
+          //セレクタ処理
+          if(checked_value["stat"].length==0){
+            selector_str=checked_value["env"].join(",")
+          }else if(checked_value["env"].length==0){
+            selector_str=checked_value["stat"].join(",")
+          }else{
+            temp=[]
+            checked_value["env"].forEach(v=>{
+              checked_value["stat"].forEach(s=>{
+                temp.push(v+s)
+              })
+            })
+            selector_str=temp.join(",")
+          }
+
+
+          $(".detail_area").find(".filter_row").each((idx,el)=>{
+            $(el).css('display','none')
+          })
+          $(".detail_area").find(selector_str).each((idx,el)=>{
+            let id = $(el).attr("id")
+            //case レベルを処理しない
+            if(id){
+              return true
+            }
+            $(el).css('display','block')
+            //最上層の環境の行を除いて、対象の親(スイートの行)を全部表示する
+            //環境の行が対象になったら、こちらの設定対象はない。（親がないので）
+            $(el).parents(".filter_row:not('browser_row')").css('display','block')
+            //対象スイート配下の全ケースを表示する
+            $(el)[0].querySelectorAll(".filter_row").forEach((item)=>{
+              $(item).css('display','block')
+            })
+          })
+ 
+        }
+        
+      })
+    });
+    
+  let open_new_tab = (idx)=>{
+    //ランのレポートでスイートのレポートを開く
+    let page_url = location.href;
+    page_url=`${page_url}?lang=${default_lang}#/ScenarioReport/${idx}`
+    window.open(page_url)
+  }
+  let open_log_file = () => {
+    let log_file_path = extra_info_data["log_url"];
+    window.open(log_file_path,"_self");
+  };
+  
+  </script>
+  
+</body>
+</html>

@@ -1,0 +1,29 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<testsuite name="Tests" tests="13" errors="0" failures="0" skipped="0" time="2385.852">
+<testcase classname="Tests.全て.画面  Headlesschrome" name="値札発行$Tdash-Sp$58-headlesschrome" time="379.214">
+</testcase>
+<testcase classname="Tests.全て.画面  Headlesschrome" name="帳票再出力$Tdash-Sp$58-headlesschrome" time="307.895">
+</testcase>
+<testcase classname="Tests.全て.エクスポート  Headlesschrome" name="入荷実績$Tdash-Sp$58-headlesschrome" time="166.874">
+</testcase>
+<testcase classname="Tests.全て.エクスポート  Headlesschrome" name="出荷実績(卸)$Tdash-Sp$58-headlesschrome" time="144.780">
+</testcase>
+<testcase classname="Tests.全て.エクスポート  Headlesschrome" name="出荷実績(通販)$Tdash-Sp$58-headlesschrome" time="148.775">
+</testcase>
+<testcase classname="Tests.全て.エクスポート  Headlesschrome" name="出荷実績(定期通販)$Tdash-Sp$58-headlesschrome" time="144.339">
+</testcase>
+<testcase classname="Tests.全て.エクスポート  Headlesschrome" name="引当実績$Tdash-Sp$58-headlesschrome" time="143.405">
+</testcase>
+<testcase classname="Tests.全て.エクスポート  Headlesschrome" name="出荷箱明細実績$Tdash-Sp$58-headlesschrome" time="131.602">
+</testcase>
+<testcase classname="Tests.全て.エクスポート  Headlesschrome" name="入荷登録データ$Tdash-Sp$58-headlesschrome" time="134.144">
+</testcase>
+<testcase classname="Tests.全て.エクスポート  Headlesschrome" name="出荷登録データ$Tdash-Sp$58-headlesschrome" time="170.879">
+</testcase>
+<testcase classname="Tests.全て.エクスポート  Headlesschrome" name="値札発行$Tdash-Sp$58-headlesschrome" time="179.643">
+</testcase>
+<testcase classname="Tests.全て.エクスポート  Headlesschrome" name="ピッキングリスト$Tdash-Sp$58-headlesschrome" time="152.900">
+</testcase>
+<testcase classname="Tests.全て.エクスポート  Headlesschrome" name="納品書$Tdash-Sp$58-headlesschrome" time="164.467">
+</testcase>
+</testsuite>

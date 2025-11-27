@@ -1,0 +1,30 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<testsuite name="Tests" tests="13" errors="0" failures="1" skipped="0" time="2282.411">
+<testcase classname="Tests.全て.画面  Headlesschrome" name="値札発行$Tdash-Sp$48-headlesschrome" time="82.328">
+<failure message="TimeoutException: Message: script timeout&#10;  (Session info: chrome=142.0.7444.163)&#10;Stacktrace:&#10;Symbols not available. Dumping unresolved backtrace:&#10;&#09;0x844103&#10;&#09;0x844144&#10;&#09;0x64e56b&#10;&#09;0x6dfef0&#10;&#09;0x6bc90c&#10;&#09;0x6dee17&#10;&#09;0x6bc706&#10;&#09;0x68da30&#10;&#09;0x68ed54&#10;&#09;0xab57b4&#10;&#09;0xab098a&#10;&#09;0x86c392&#10;&#09;0x85c4c8&#10;&#09;0x86324d&#10;&#09;0x84c478&#10;&#09;0x84c63c&#10;&#09;0x8367ca&#10;&#09;0x76e05d49&#10;&#09;0x7767d6db&#10;&#09;0x7767d661&#10;&#10;PASS = 1.Valtes Open Url Browser&#10;PASS = 2.Valtes Input Text&#10;PASS = 3.Valtes Input Text&#10;PASS = 4.Valtes Click Element&#10;PASS = 5.Valtes Click Element&#10;PASS = 6.Valtes Go To Url&#10;PASS = 7.Valtes Click Element&#10;PASS = 8.Valtes Click Element&#10;PASS = 9.Valtes Click Element&#10;PASS = 10.Valtes Set Checkbox&#10;PASS = 11.Valtes Set Checkbox&#10;PASS = 12.Valtes Clear Element Text&#10;PASS = 13.Valtes Clear Element Text&#10;PASS = 14.Valtes Clear Element Text&#10;PASS = 15.Valtes Clear Element Text&#10;PASS = 16.Valtes Input Text&#10;PASS = 17.Valtes Click Element" type="AssertionError"/>
+</testcase>
+<testcase classname="Tests.全て.画面  Headlesschrome" name="帳票再出力$Tdash-Sp$48-headlesschrome" time="303.569">
+</testcase>
+<testcase classname="Tests.全て.エクスポート  Headlesschrome" name="入荷実績$Tdash-Sp$48-headlesschrome" time="173.365">
+</testcase>
+<testcase classname="Tests.全て.エクスポート  Headlesschrome" name="出荷実績(卸)$Tdash-Sp$48-headlesschrome" time="199.884">
+</testcase>
+<testcase classname="Tests.全て.エクスポート  Headlesschrome" name="出荷実績(通販)$Tdash-Sp$48-headlesschrome" time="171.995">
+</testcase>
+<testcase classname="Tests.全て.エクスポート  Headlesschrome" name="出荷実績(定期通販)$Tdash-Sp$48-headlesschrome" time="154.667">
+</testcase>
+<testcase classname="Tests.全て.エクスポート  Headlesschrome" name="引当実績$Tdash-Sp$48-headlesschrome" time="154.029">
+</testcase>
+<testcase classname="Tests.全て.エクスポート  Headlesschrome" name="出荷箱明細実績$Tdash-Sp$48-headlesschrome" time="159.550">
+</testcase>
+<testcase classname="Tests.全て.エクスポート  Headlesschrome" name="入荷登録データ$Tdash-Sp$48-headlesschrome" time="153.102">
+</testcase>
+<testcase classname="Tests.全て.エクスポート  Headlesschrome" name="出荷登録データ$Tdash-Sp$48-headlesschrome" time="184.037">
+</testcase>
+<testcase classname="Tests.全て.エクスポート  Headlesschrome" name="値札発行$Tdash-Sp$48-headlesschrome" time="189.699">
+</testcase>
+<testcase classname="Tests.全て.エクスポート  Headlesschrome" name="ピッキングリスト$Tdash-Sp$48-headlesschrome" time="164.245">
+</testcase>
+<testcase classname="Tests.全て.エクスポート  Headlesschrome" name="納品書$Tdash-Sp$48-headlesschrome" time="174.783">
+</testcase>
+</testsuite>
